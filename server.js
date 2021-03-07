@@ -72,6 +72,86 @@ const prices = {
  *        responses:
  *              200:
  *                description: Object found containing array of agents
+ * /foods:
+ *      get:
+ *        description: Return all food
+ *        produces:
+ *               - application/json
+ *        responses:
+ *              200:
+ *                description: Object found containing array of food
+ * /orders:
+ *      get:
+ *        description: Return all orders
+ *        produces:
+ *               - application/json
+ *        responses:
+ *              200:
+ *                description: Object found containing array of orders
+ * /company:
+ *      post:
+ *        description: Insert a new company
+ *        consumes:
+ *               - application/json
+ *        parameters:
+ *              - in: body
+ *                schema:
+ *                  type: object
+ *                  properties:
+ *                      COMPANY_ID:
+ *                          type: string
+ *                      COMPANY_NAME:
+ *                          type: string
+ *                      COMPANY_CITY:
+ *                          type: string
+ *        responses:
+ *              201:
+ *                description: Object found containing array of companies
+ * /studentreport/:id:
+ *      patch:
+ *        description: Update a Student Report grade
+ *        consumes:
+ *               - application/json
+ *        parameters:
+ *              - in: param
+ *                schema:
+ *                  type: object
+ *                  properties:
+ *                      id:
+ *                          type: string
+ *        responses:
+ *              201:
+ *                description: Object found containing array of student reports
+ * /student/:id:
+ *      put:
+ *        description: Update a Student record
+ *        consumes:
+ *               - application/json
+ *        parameters:
+ *              - in: param
+ *                schema:
+ *                  type: object
+ *                  properties:
+ *                      id:
+ *                          type: string
+ *        responses:
+ *              201:
+ *                description: Object found containing array of students
+ * /foods/:id:
+ *      delete:
+ *        description: Delete a food
+ *        consumes:
+ *               - application/json
+ *        parameters:
+ *              - in: param
+ *                schema:
+ *                  type: object
+ *                  properties:
+ *                      id:
+ *                          type: string
+ *        responses:
+ *              201:
+ *                description: Object found containing array of foods
  */
 app.get('/prices', (req, res) => {
     res.json(prices);
@@ -111,23 +191,53 @@ app.get('/orders', (req, res) => {
 });
 
 app.post('/company/', (req, res) => {
+        console.log('Request Body: ', req.body);
         pool.getConnection().then(connection => {
-            var id = req.params.id;
-            connection.query('INSERT INTO company VALUES ("20", "My Hero Academia", "Tokyo\r");').then(rows => {
+            var companyID = req.body.COMPANY_ID;
+            var companyName = req.body.COMPANY_NAME;
+            var companyCity = req.body.COMPANY_CITY;
+            connection.query('INSERT INTO company VALUES (?, ?, ?)', [companyID, companyName, companyCity]).then(rows => {
                 res.send({success: true});
-                console.log('Data received: ', rows);
+                console.log('Data posted: ', rows);
                 }).then(anything => {
                 connection.release();
           });
         });
     });
 
-    app.patch('/company/', (req, res) => {
+    app.patch('/studentreport/:id', (req, res) => {
+        console.log('Request Params: ', req.params.id);
         pool.getConnection().then(connection => {
             var id = req.params.id;
-            connection.query('INSERT INTO company VALUES ("20", "My Hero Academia", "Tokyo\r");').then(rows => {
+            connection.query('UPDATE studentreport SET GRADE = ? WHERE ROLLID = ', id, ';').then(rows => {
               res.json(rows);
-                console.log('Data received: ', rows);
+                console.log('Data updated: ', rows);
+                }).then(anything => {
+                connection.release();
+          });
+        });
+    });
+
+    app.put('/student/:id', (req, res) => {
+        console.log('Request Params: ', req.params.id);
+        pool.getConnection().then(connection => {
+            var id = req.params.id;
+            connection.query('UPDATE student SET NAME = ?, TITLE = ?, CLASS = ?, SECTION = ?, ROLLID = ? WHERE ROLLID = ', id, ';').then(rows => {
+              res.json(rows);
+                console.log('Data updated: ', rows);
+                }).then(anything => {
+                connection.release();
+          });
+        });
+    });
+
+    app.delete('/foods/:id', (req, res) => {
+        console.log('Request Params: ', req.params.id);
+        pool.getConnection().then(connection => {
+            var id = req.params.id;
+            connection.query('DELETE FROM foods WHERE ITEM_ID = ', id, ';').then(rows => {
+              res.json(rows);
+                console.log('Data deleted: ', rows);
                 }).then(anything => {
                 connection.release();
           });
